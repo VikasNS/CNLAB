@@ -37,6 +37,7 @@ $ns duplex-link $n(1) $n(2) 0.5Mb 20ms DropTail
 #sets the queue limit to the Drop Tail Queue we will be using between those 2 nodes. Once 10 packets are in queue, any new packets will be dropped.
 $ns queue-limit $n(1) $n(2) 10
 
+************************************************ UDP with CBR *************************************************************
 #Create a UDP agent and assigns it to the variable udp0
 set udp0 [new Agent/UDP]
 
@@ -53,7 +54,6 @@ $cbr0 set interval_ 0.005
 # Attach the traffic source to the udp agent
 $cbr0 attach-agent $udp0
 
-
 #Create a Null agent (a traffic sink) and attach it to node n(3). This is where the data will finally land and where its consumed
 set null0 [new Agent/Null]
 $ns attach-agent $n(3) $null0
@@ -61,6 +61,40 @@ $ns attach-agent $n(3) $null0
 #Connect the traffic source with the traffic sink and assign flow id color
 $ns connect $udp0 $null0  
 $udp0 set fid_ 2
+************************************************ UDP with CBR *************************************************************
+
+
+************************************************ TCP with FTP | TELNET ****************************************************
+#Set TCP TELNET Connection between n(0) and n(3)
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n(0) $tcp0
+
+#We are using TCPSink as in TCP we need to send the acknowledgement once packet is recived. This is done with TCPSink.
+set sink0 [new Agent/TCPSink]
+$ns attach-agent $n(3) $sink0
+$ns connect $tcp0 $sink0
+
+#Creates the traffic source TELNET and attaches it to tcp0
+set telnet [new Application/Telnet]
+$telnet attach-agent $tcp0
+$telnet set interval_ 0
+
+#Creates the traffic source FTP and attaches it to tcp1
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp1
+$ftp set type_ FTP
+
+************************************************ TCP with FTP | TELNET ****************************************************
+
+
+
+
+
+
+
+
+
+
 
 # At 0.5 th second start the cbr.(ie will start to produce the data)
 $ns at 0.5 "$cbr0 start"
