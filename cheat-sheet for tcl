@@ -1,0 +1,74 @@
+#Create a simulator object
+set ns [new Simulator]
+
+#to open a file and assign it to a variable
+set variable_name [open file_name w]
+
+#instruct network simulator to write all the trace details to file pointed by 'traceFile'
+$ns trace-all $traceFile
+
+#instruct network simulator to write all the nam trace details to file pointed by 'namFile'
+$ns namtrace-all $namFile
+
+#variables ns, namFile, traceFile available outside the method will be used.
+global ns namFile traceFile
+
+#once simulation is over, trace details stored in memory will be flushed to previously mentioned files.
+$ns flush-trace
+
+#to close the file pointed by the variable 'file_name'
+close $file_name
+
+#executes stats.awk program which analyzes the contenets in 1.tr file.
+exec awk -f stats.awk 1.tr &
+
+#executes the out1.nam which shows the animation of simulation.
+exec nam out1.nam &
+
+#"[$ns node]" this part creates a new node and the other part assigns it to the variable n
+set n [$ns node]
+
+#n(1) is an array pointing at index 1. so the new node will be assigned to the index 1 of the array n. "()" are used to index an array in tcl. 
+set n(1) [$ns node]
+
+#creates a duplex link (2 way communication) between nodes at index 1 and 2 of array n with 0.5Mb bandwidth 20ms delay and DropTail Queue.
+$ns duplex-link $n(1) $n(2) 0.5Mb 20ms DropTail
+
+#sets the queue limit to the Drop Tail Queue we will be using between those 2 nodes. Once 10 packets are in queue, any new packets will be dropped.
+$ns queue-limit $n(1) $n(2) 10
+
+#Create a UDP agent and assigns it to the variable udp0
+set udp0 [new Agent/UDP]
+
+#Attaches UDP agent we just created to the node at index 1 of the array n.
+$ns attach-agent $n(1) $udp0
+
+# Create a CBR traffic source and assigns it the variable cbr0. This provides the data for that will be transferred in the network
+set cbr0 [new Application/Traffic/CBR]
+
+# Configure the traffic
+$cbr0 set packetSize_ 512
+$cbr0 set interval_ 0.005
+
+# Attach the traffic source to the udp agent
+$cbr0 attach-agent $udp0
+
+
+#Create a Null agent (a traffic sink) and attach it to node n(3). This is where the data will finally land and where its consumed
+set null0 [new Agent/Null]
+$ns attach-agent $n(3) $null0
+
+#Connect the traffic source with the traffic sink and assign flow id color
+$ns connect $udp0 $null0  
+$udp0 set fid_ 2
+
+# At 0.5 th second start the cbr.(ie will start to produce the data)
+$ns at 0.5 "$cbr0 start"
+
+# At 2nd second call the function finish.
+$ns at 2.0 "finish"
+
+# Run the simulation.
+$ns run
+
+
