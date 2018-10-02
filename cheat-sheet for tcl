@@ -87,15 +87,6 @@ $ftp set type_ FTP
 ************************************************ TCP with FTP | TELNET ****************************************************
 
 
-
-
-
-
-
-
-
-
-
 # At 0.5 th second start the cbr.(ie will start to produce the data)
 $ns at 0.5 "$cbr0 start"
 
