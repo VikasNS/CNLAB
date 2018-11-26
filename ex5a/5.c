@@ -63,10 +63,10 @@ int main()
     }
     crc();
     for(e=0;(e<N-1) && (cs[e]!='1');e++){}
-        if(e<N-1)
-            printf("\nError detected\n\n");
-        else
-            printf("\nNo error detected\n\n");
-            printf("\n----------------------------------------\n");
-        return 0;
+    if(e<N-1)
+      printf("\nError detected\n\n");
+    else
+      printf("\nNo error detected\n\n");
+      printf("\n----------------------------------------\n");
+    return 0;
 }
