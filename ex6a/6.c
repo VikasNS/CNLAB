@@ -1,79 +1,95 @@
-/******************************************************************************
-
-                            Online C Compiler.
-                Code, Compile, Run and Debug C program online.
-Write your code in this editor and press "Run" button to compile and execute it.
-
-*******************************************************************************/
-
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-
-void print_out(char is_dropped[20],int packet_size,int curr_size,int after_adding,int after_processing)
-{
-    printf("%s \t\t %d \t\t %d \t\t %d \t\t %d \n",is_dropped,packet_size,curr_size,after_adding,after_processing);
-}
-
-void leaky_bucket(int max_packet_count,int process_rate,int bucket_limit)
-{
-    int curr_bucket_size=0;
-    int i=0;
-    int random_packet_size;
-    char is_dropped[20];
-    int c1_pk_size;
-    int c2_b4;
-    int c3_after_adding;
-    int c4_after_proccesing;
-    
-    printf("Packet Status \t Packet Size \t B4 Adding \t After Adding \t After Proccesing \n");
-    
-    while(i<max_packet_count)
-    {
-        strncpy(is_dropped, "not dropped", 20);
-        random_packet_size=(rand()%bucket_limit)+10;
-        
-        c1_pk_size=random_packet_size;
-        c2_b4=curr_bucket_size;
-        
-        if(bucket_limit-curr_bucket_size<random_packet_size)
-            strncpy(is_dropped, "dropped", 20);
-        else   
-            curr_bucket_size+=random_packet_size;
-        
-        c3_after_adding=curr_bucket_size;
-        
-        if(curr_bucket_size<=process_rate)
-            curr_bucket_size=0;
-        else
-            curr_bucket_size-=process_rate;
-        
-        c4_after_proccesing=curr_bucket_size;
-           
-       print_out(is_dropped,c1_pk_size,c2_b4,c3_after_adding,c4_after_proccesing); 
-       i++;
-    }
-    
-    c1_pk_size=0;
-    
-    while(curr_bucket_size!=0)
-    {
-        c3_after_adding=c2_b4=curr_bucket_size;
-        if(curr_bucket_size<=process_rate)
-            curr_bucket_size=0;
-        else
-            curr_bucket_size-=process_rate;
-        c4_after_proccesing=curr_bucket_size;
-        print_out("No packet",c1_pk_size,c2_b4,c3_after_adding,c4_after_proccesing);  
-    }
-    
-    
-}
-
-
-int main()
-{
-    leaky_bucket(10,200,1000);
-
-    return 0;
-}
+#include <iostream> 	
+ #include <stdio.h>                 // Needed for printf() to get nice hex values	
+ #include <stdlib.h>                 // Needed for rand()	
+ 
+  using namespace std;	
+ 
+  //----- Type defines ----------------------------------------------------------	
+ typedef unsigned char      byte;    // Byte is a char	
+ typedef unsigned short int word16;  // 16-bit word is a short int	
+ typedef unsigned int       word32;  // 32-bit word is an int	
+ 
+  //----- Globals ---------------------------------------------------------------	
+ int BUFFER_LEN=4096;      // Length of buffer when using random data	
+ 
+  //----- Prototypes ------------------------------------------------------------	
+ word16 checksum(byte *addr, word32 count,word32 initsum = 0);	
+ 
+  //===== Main function ==========================================================	
+ int main(void)	
+ {	
+   byte        buff[BUFFER_LEN]; // Buffer of packet bytes	
+   word16      check;            // 16-bit checksum value	
+   word32      i,ch,v=0;                // Loop counter and choice	
+ 
+    printf("Use random values(0) or enter data(1) for checksum demo:");	
+   cin>>ch;	
+ 
+    if(ch){	
+     printf("Enter the number of bytes:");	
+     cin>>BUFFER_LEN;	
+     printf("Enter the %d bytes:",BUFFER_LEN);	
+     for (i=0; i<BUFFER_LEN; i++)	
+       cin>>buff[i];	
+     v = 1;//indicates verbose	
+   }	
+   else	
+   {	
+     srand(time(NULL));	
+     // Load buffer with BUFFER_LEN random bytes	
+     for (i=0; i<BUFFER_LEN; i++)	
+       buff[i] = (byte) rand();  	
+   }	
+ 
+    if(v) printf("\nOriginal Data:%s\n",buff);  	
+   // Compute the 16-bit checksum	
+   check = checksum(buff, BUFFER_LEN);	
+   printf("\nOriginal checksum of data = %04X\n", check);	
+   printf("\nTest error detection 0(yes) 1(no)? : ");	
+   cin>>ch;	
+   if(ch==0)	
+   {	
+     do{	
+       do{	
+           printf("\nEnter the position where error is to be inserted(or 0 to stop) : ");	
+           cin>>ch;	
+       }while(ch>BUFFER_LEN-1);	
+       buff[ch]++;	
+     }while(ch!=0);      	
+   }	
+   if(v) printf("\nNew Data:%s\n",buff);	
+   check = checksum(buff,BUFFER_LEN,check);	
+   // Output the checksum	
+   printf("\nValidated checksum = %04X\n", check);	
+   if(check)	
+     printf("\nError Detected!\n");	
+   else	
+     printf("\nNo errors occured!\n");	
+ }	
+ 
+  //=============================================================================	
+ //=  Compute Internet Checksum for count bytes beginning at location addr     	
+ //   Passing initsum in case a checksum needs to be validated.	
+ //=============================================================================	
+ word16 checksum(byte *addr, word32 count,word32 initsum)	
+ {	
+    word32 sum = initsum;	
+ 
+    // Main summing loop	
+   while(count > 1)	
+   {    	
+     sum = sum + *((word16 *) addr);	
+     count = count - 2;	
+     (word16 *) addr++;	
+   }	
+ 
+    // Add left-over byte, if any	
+   if (count > 0)	
+     sum = sum + *((byte *) addr);	
+ 
+    // Fold 32-bit sum to 16 bits	
+   while (sum>>16)	
+     sum = (sum & 0xFFFF) + (sum >> 16);	
+ 
+    return(~sum);	
+ }
