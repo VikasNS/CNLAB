@@ -1,78 +1,67 @@
-//To demonstrate leaky bucket algorithm
-
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-
-#define MAXPACKETS 10
-
-using namespace std;
-void leakybucket(int bmax, int rate)
-{            
-    int curr_packet, buffersize=0;
-    int pmax = bmax+0.3*bmax;    
-
-    srand(time(NULL));
-    for(int i=0;i<MAXPACKETS;i++)
-    {
-        cout<<"\nIncoming Packet Size:";
-        curr_packet = rand()%pmax+10;
-        cout<<curr_packet;
-        //add packet to buffer
-        if(curr_packet+buffersize > bmax)
-        {
-            cout<<"\nInsufficient Space: packet dropped";
-        }
-        else 
-        {
-            cout<<"\nAdded packet with size:"<<curr_packet;            
-            buffersize += curr_packet;            
-        }        
-        cout<<"\nSize of Buffer:"<<buffersize;
-        
-        cout<<"\nPress any key to continue...";
-        getchar();
-        
-        //Send packets:
-
-        if(!buffersize){
-            cout<<"\nBuffer empty";         
-        }
-        if(buffersize >= rate)    
-        {
-            buffersize -= rate;
-            cout<<endl<<rate<<" bytes sent" <<endl;
-        } 
-        else
-        {
-            cout<<endl<<buffersize<<" bytes sent"<<endl;
-            buffersize = 0;
-        }
-    }
-    cout<<endl;
-    while(buffersize)
-    {        
-        if(buffersize >= rate)    
-        {
-            buffersize -= rate;
-            cout<<endl<<rate<<" bytes sent" <<endl;
-        } 
-        else
-        {
-            cout<<endl<<buffersize<<" bytes sent"<<endl;
-            buffersize = 0;
-        }
-        cout<<"Size of Buffer:"<<buffersize<<endl;
-    }
-    cout<<"\nNo more data...\n";    
+void print_out(char is_dropped[20],int packet_size,int curr_size,int after_adding,int after_processing)
+{
+    printf("%s \t\t %d \t\t %d \t\t %d \t\t %d \n",is_dropped,packet_size,curr_size,after_adding,after_processing);
 }
+
+void leaky_bucket(int max_packet_count,int process_rate,int bucket_limit)
+{
+    int curr_bucket_size=0;
+    int i=0;
+    int random_packet_size;
+    char is_dropped[20];
+    int c1_pk_size;
+    int c2_b4;
+    int c3_after_adding;
+    int c4_after_proccesing;
+    
+    printf("Packet Status \t Packet Size \t B4 Adding \t After Adding \t After Proccesing \n");
+    
+    while(i<max_packet_count)
+    {
+        strncpy(is_dropped, "not dropped", 20);
+        random_packet_size=(rand()%bucket_limit)+10;
+        
+        c1_pk_size=random_packet_size;
+        c2_b4=curr_bucket_size;
+        
+        if(bucket_limit-curr_bucket_size<random_packet_size)
+            strncpy(is_dropped, "dropped", 20);
+        else   
+            curr_bucket_size+=random_packet_size;
+        
+        c3_after_adding=curr_bucket_size;
+        
+        if(curr_bucket_size<=process_rate)
+            curr_bucket_size=0;
+        else
+            curr_bucket_size-=process_rate;
+        
+        c4_after_proccesing=curr_bucket_size;
+           
+       print_out(is_dropped,c1_pk_size,c2_b4,c3_after_adding,c4_after_proccesing); 
+       i++;
+    }
+    
+    c1_pk_size=0;
+    
+    while(curr_bucket_size!=0)
+    {
+        c3_after_adding=c2_b4=curr_bucket_size;
+        if(curr_bucket_size<=process_rate)
+            curr_bucket_size=0;
+        else
+            curr_bucket_size-=process_rate;
+        c4_after_proccesing=curr_bucket_size;
+        print_out("No packet",c1_pk_size,c2_b4,c3_after_adding,c4_after_proccesing);  
+    }
+    
+    
+}
+
+
 int main()
 {
-    int bufferMax, outRate;
-    cout<<"Enter bufferSize,output rate:";
-    cin>>bufferMax>>outRate;
-    leakybucket(bufferMax,outRate);
-    
+    leaky_bucket(10,200,1000);
+
     return 0;
 }
-
