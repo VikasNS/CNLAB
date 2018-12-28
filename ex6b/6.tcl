@@ -54,7 +54,7 @@ $ns simplex-link-op $n(2) $n(3) queuePos 0.5
 set loss_model [new ErrorModel]
 $loss_model ranvar [new RandomVariable/Uniform]
 $loss_model drop-target [new Agent/Null]
-$loss_modele set rate_ $error_rate
+$loss_model set rate_ $error_rate
 $ns lossmodel $loss_model $n(2) $n(3)
 
 #Setup TCP Connection between n(0) and n(4)
