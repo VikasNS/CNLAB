@@ -1,72 +1,85 @@
-//===== To demo data transfer in unreliable network code using CRC (16-bits) Technique.
+/******************************************************************************
 
-#include<stdio.h>
+                            Online C Compiler.
+                Code, Compile, Run and Debug C program online.
+Write your code in this editor and press "Run" button to compile and execute it.
 
-#include<string.h>
+*******************************************************************************/
 
-#define N strlen(g)
- 
-char t[28];//stores test data
-char cs[28]; //stores crc checksum
-char g[]="10001000000100001"; //generator polynomial
-int a,e,c;
- 
-void xor()
+#include <stdio.h>
+
+void xor(char g[8],char r[8])
 {
-    for(c = 1;c < N; c++)
-    cs[c] = (( cs[c] == g[c])?'0':'1');
+    for(int i=0;i<8;i++)
+    {
+        
+        if(g[i]==r[i])
+            r[i]='0';
+        else
+            r[i]='1';
+        
+            
+    }
 }
- 
-void crc()
+
+void crc(char g[8],char cw[23],char r[8])
 {
-    for(e=0;e<N;e++)
-        cs[e]=t[e];  
-    do{
-        if(cs[0]=='1')
-            xor(); //xor with generator polynomial 
-        for(c=0;c<N-1;c++)
-            cs[c]=cs[c+1];
-        cs[c]=t[e++];
-    }while(e<=a+N-1);
+    int i=0;
+    int j=0;
+    for(i;i<8;i++)
+        r[i]=cw[i];
+    
+    do
+    {
+       if(cw[0]=='1')
+            xor(g,r);
+        
+        
+        for(j=0;j<7;j++)
+            r[j]=r[j+1];
+            
+        
+        r[j]=cw[i++];
+        printf("\n");
+    
+        for(int h=0;h<7;h++)
+             printf("%c",r[h]);
+     
+        
+    }while(i<=(16+8-1));
+    
 }
- 
+
+
+
 int main()
 {
-    printf("\nEnter data : ");
-    scanf("%s",t);
-    printf("\n----------------------------------------");
-    printf("\nGeneratng polynomial : %s",g);
-    a=strlen(t);
-    for(e=a;e<a+N-1;e++)
-        t[e]='0';
-    printf("\n----------------------------------------");
-    printf("\nPadded data is : %s",t);
-    printf("\n----------------------------------------");
-    crc();
-    printf("\nChecksum is : %s",cs);
-    for(e=a;e<a+N-1;e++)
-        t[e]=cs[e-a];
-    printf("\n----------------------------------------");
-    printf("\nFinal codeword is : %s",t);
-    printf("\n----------------------------------------");
-    printf("\nTest error detection 0(yes) 1(no)? : ");
-    scanf("%d",&e);
-    if(e==0)
-    {
-        do{
-            printf("\nEnter the position where error is to be inserted : ");
-            scanf("%d",&e);
-        }while(e==0 || e>a+N-1);
-        t[e-1]=(t[e-1]=='0')?'1':'0';
-        printf("\n----------------------------------------");
-        printf("\nErroneous data : %s\n",t);
-    }
-    crc();
-    for(e=0;(e<N-1) && (cs[e]!='1');e++){}
-    if(e<N-1)
-      printf("\nError detected\n\n");
-    else
-      printf("\nNo error detected\n\n");
-      printf("\n----------------------------------------\n");
-    return 0;
+    int i=0;
+    int j=16;
+    char d[16]="1110011111110010";
+    char g[8]= "10101001";
+    char cw[23];
+    char r[8];
+    
+    for(i;i<16;i++)
+        cw[i]=d[i];
+    for(j;j<23;j++)
+        cw[j]='0';
+    
+        
+    crc(g,cw,r);
+    
+    for(i=0;i<7;i++)
+        cw[16+i]=r[i];
+        
+    crc(g,cw,r);
+    
+    printf("\n");
+    for(int h=0;h<7;h++)
+        printf("%c",r[h]);
+    
+    
+
+        
+    
 }
